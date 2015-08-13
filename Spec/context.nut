@@ -29,18 +29,32 @@ function new_context(id, delegate) {
 
   context.name <- id;
   context.contexts <- [];
+  context.examples <- [];
 
   context.setdelegate(delegate);
   return context;
 }
 
 
-function enumerate_child_contexts(parent_id, context, block) {
+function enumerate_examples(parent_id, context, func) {
+  foreach (example in context.examples) {
+    local child_id = composite_example_id(parent_id, example.name);
+    func(child_id, example);
+  }
+}
+
+
+function enumerate_child_contexts(parent_id, context, func) {
   foreach (child_context in context.contexts) {
     local child_id = composite_context_id(parent_id, child_context.name);
-    block(child_id, child_context);
-    enumerate_child_contexts(child_id, child_context, block);
+    func(child_id, child_context);
+    enumerate_child_contexts(child_id, child_context, func);
   }
+}
+
+
+function composite_example_id(parent_id, child_id) {
+  return parent_id + ", it " + child_id;
 }
 
 

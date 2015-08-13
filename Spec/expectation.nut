@@ -1,5 +1,5 @@
 //
-//  spec.nut
+//  expectation.nut
 //  SqTest
 //
 //  Created by Egor Chiglintsev on 13.08.15.
@@ -23,38 +23,28 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
+function new_example(what, delegate) {
+  local example = { name = what };
+  example.setdelegate(delegate);
+  example.expectations <- [];
 
-registered_specs <- {
-
+  return example;
 }
 
 
-function new_spec(what) {
-  local spec = new_context(what, this);
-  registered_specs[what] <- spec;
+function new_expectation(value) {
+  local expectation = {};
+  expectation.value <- value;
+  expectation.verifier <- null;
 
-  return spec;
+  return expectation;
 }
 
 
-function enumerate_registered_examples(func) {
-  enumerate_registered_contexts(function(id, context) {
-    enumerate_examples(id, context, func);
-    });
-}
+function expect(value) {
+  local expectation = new_expectation(value);
+  expectation.setdelegate(Verifiers);
 
-
-function enumerate_registered_contexts(func) {
-  enumerate_registered_specs(function(spec_id, spec) {
-    enumerate_child_contexts(spec_id, spec, function(child_id, context) {
-      func(child_id, context);
-      });
-    });
-}
-
-
-function enumerate_registered_specs(func) {
-  foreach (spec_id, spec in registered_specs) {
-    func(spec_id, spec);
-  }
+  expectations.push(expectation);
+  return expectation;
 }

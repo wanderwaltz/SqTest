@@ -23,14 +23,38 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
+::import("Spec/expectation", this);
 ::import("Spec/context", this);
 ::import("Spec/spec", this);
+::import("Verifiers/verifiers", this);
+::import("Verifiers/should_verifier", this);
+::import("Matchers/matchers", this);
+::import("Matchers/equal_matcher", this);
+::import("Matchers/be_negative_matcher", this);
 
 
 function run() {
-  enumerate_registered_contexts(function(context_id, context) {
-    print(context_id + "\n");
+  local result = {
+    failed_expectations = 0
+    total_expectations = 0
+  };
+
+  enumerate_registered_examples(function(id, example) {
+    print(id + " ");
+    foreach (expectation in example.expectations) {
+      result.total_expectations += 1;
+      local valid = expectation.verifier.verify();
+      if (valid == false) {
+        result.failed_expectations += 1;
+        print("FAILED: " + expectation.verifier.result());
+      }
+    }
+    print("\n");
     });
+
+  print("\n");
+  print("Total expectations: " + result.total_expectations + "\n");
+  print("Failed expectations: " + result.failed_expectations + "\n");
 }
 
 
@@ -49,5 +73,15 @@ function describe(what, how) {
   how.bindenv(context)();
 }
 
-
 context <- describe;
+
+
+function it(what, how) {
+  local example = new_example(what, this);
+
+  examples.push(example);
+  how.bindenv(example)();
+}
+
+
+
